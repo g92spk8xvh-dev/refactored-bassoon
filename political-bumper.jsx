@@ -29,25 +29,9 @@ var CONFIG = {
 // ============================================================================
 
 function ease(prop, keyframes) {
-    var i, j;
-    for (i = 0; i < keyframes.length; i++) {
+    // Set keyframes only - easing can be added manually in AE if desired
+    for (var i = 0; i < keyframes.length; i++) {
         prop.setValueAtTime(keyframes[i][0], keyframes[i][1]);
-    }
-    // Apply easing based on property dimensions
-    for (j = 1; j <= prop.numKeys; j++) {
-        var easeObj = new KeyframeEase(0.5, 80);
-        var dims = 1;
-        var pType = prop.propertyValueType;
-        if (pType === PropertyValueType.TwoD || pType === PropertyValueType.TwoD_SPATIAL) {
-            dims = 2;
-        } else if (pType === PropertyValueType.ThreeD || pType === PropertyValueType.ThreeD_SPATIAL) {
-            dims = 3;
-        }
-        var easeArray = [];
-        for (var d = 0; d < dims; d++) {
-            easeArray.push(easeObj);
-        }
-        prop.setTemporalEaseAtKey(j, easeArray, easeArray);
     }
 }
 
