@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP52 Sailboat Racing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            min-width: 200px;
+        }
+
+        .hud-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hud-label {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        #windIndicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            backdrop-filter: blur(5px);
+            border: 3px solid #00d4ff;
+        }
+
+        #windArrow {
+            position: absolute;
+            width: 4px;
+            height: 50px;
+            background: #ff4444;
+            left: 50%;
+            top: 10px;
+            transform-origin: center 50px;
+            border-radius: 2px;
+        }
+
+        #windArrow::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid #ff4444;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .control-row {
+            margin: 5px 0;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            color: white;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #00d4ff;
+        }
+
+        #instructions h1 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        #instructions ul {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        #instructions li {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        #instructions button {
+            background: #00d4ff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #instructions button:hover {
+            background: #00b8e6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="instructions">
+        <h1>TP52 Sailboat Racing</h1>
+        <p>Welcome to the ultimate sailing experience! Race your TP52 yacht around the course.</p>
+        <ul>
+            <li><strong>A/D or ←/→</strong> - Steer left/right</li>
+            <li><strong>W/S or ↑/↓</strong> - Trim sails in/out</li>
+            <li><strong>Space</strong> - Tack (change direction)</li>
+            <li><strong>C</strong> - Change camera view</li>
+        </ul>
+        <p><strong>Tip:</strong> Sail close to the wind but not too close, or you'll stall!</p>
+        <button id="startButton">Start Racing</button>
+    </div>
+
+    <div id="hud" class="hidden">
+        <div class="hud-item">
+            <span class="hud-label">Speed:</span>
+            <span id="speed">0.0 kts</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Heading:</span>
+            <span id="heading">0°</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Wind Angle:</span>
+            <span id="windAngle">0°</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Sail Trim:</span>
+            <span id="sailTrim">50%</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Checkpoint:</span>
+            <span id="checkpoint">1/5</span>
+        </div>
+    </div>
+
+    <div id="windIndicator" class="hidden">
+        <div id="windArrow"></div>
+    </div>
+
+    <div id="controls" class="hidden">
+        <div class="control-row"><strong>Steer:</strong> A/D or ←/→</div>
+        <div class="control-row"><strong>Sails:</strong> W/S or ↑/↓</div>
+        <div class="control-row"><strong>Tack:</strong> Space</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
