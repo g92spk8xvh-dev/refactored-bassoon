@@ -29,11 +29,16 @@ A 3D sailboat racing game featuring a TP52 yacht with realistic sailing physics 
 
 ## How to Play
 
-1. Open `index.html` in a modern web browser
-2. Click "Start Racing" to begin
-3. Navigate through all checkpoints to complete the race
-4. Watch the wind indicator (top right) to plan your course
-5. Adjust sail trim for optimal speed at different wind angles
+1. Start a local web server in the game directory:
+   ```bash
+   python3 -m http.server 8000
+   ```
+   Or use any other local web server of your choice
+2. Open your browser and navigate to `http://localhost:8000`
+3. Click "Start Racing" to begin
+4. Navigate through all checkpoints to complete the race
+5. Watch the wind indicator (top right) to plan your course
+6. Adjust sail trim for optimal speed at different wind angles
 
 ## Sailing Tips
 
