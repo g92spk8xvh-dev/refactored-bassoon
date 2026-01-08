@@ -1,8 +1,10 @@
 /*
  * POLITICAL BUMPER END GRAPHIC
  * Panel Collision → Starburst Fan → Logo Reveal
+ * VERSION: 6 - No easing code
  *
  * Adobe After Effects ExtendScript
+ * If you see an error about setTemporalEaseAtKey, you have an old version!
  */
 
 // ============================================================================
