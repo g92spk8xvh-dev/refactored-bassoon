@@ -1,544 +1,297 @@
 /*
  * POLITICAL BUMPER END GRAPHIC
- * Modern Political Motion Graphic with WPA-Style Americana
+ * Clean Modern Political Transition with WPA Americana Influence
  *
  * Adobe After Effects ExtendScript
- *
- * USAGE: Run this script in After Effects via File > Scripts > Run Script File
- *
- * The script creates a complete animated bumper composition with:
- * - Sunburst rays (WPA style)
- * - Geometric stripes
- * - Star accents
- * - Logo placeholder
- * - Smooth transitions
+ * Run via: File > Scripts > Run Script File
  */
 
 // ============================================================================
-// CONFIGURATION - EASILY CUSTOMIZE COLORS AND SETTINGS HERE
+// CONFIGURATION - CUSTOMIZE COLORS AND SETTINGS HERE
 // ============================================================================
 
 var CONFIG = {
-    // PRIMARY COLORS (RGB values 0-1)
-    // Classic American political palette - easily change these values
+    // PRIMARY COLORS (RGB 0-1) - Easy to change
     colors: {
-        primary: {
-            red:   [0.698, 0.132, 0.203],    // #B22234 - Classic Flag Red
-            white: [1.000, 1.000, 1.000],    // #FFFFFF - Pure White
-            blue:  [0.234, 0.234, 0.430]     // #3C3C6E - Classic Flag Blue
-        },
-        // Alternative color schemes (uncomment to use)
-        // Modern Bold:
-        // red:   [0.890, 0.145, 0.210],    // #E32536
-        // white: [0.976, 0.976, 0.976],    // #F9F9F9
-        // blue:  [0.129, 0.220, 0.478]     // #21387A
-
-        // Vintage WPA:
-        // red:   [0.765, 0.220, 0.173],    // #C3382C
-        // white: [0.961, 0.949, 0.918],    // #F5F2EA
-        // blue:  [0.184, 0.286, 0.388]     // #2F4963
+        red:   [0.698, 0.132, 0.203],    // #B22234 - Flag Red
+        white: [1.000, 1.000, 1.000],    // #FFFFFF - White
+        blue:  [0.133, 0.173, 0.298]     // #222C4C - Deep Navy
     },
 
-    // COMPOSITION SETTINGS
+    // COMPOSITION
     comp: {
         name: "Political_Bumper_End",
         width: 1920,
         height: 1080,
-        pixelAspect: 1,
-        duration: 4,          // seconds
+        duration: 3,
         frameRate: 30
     },
 
-    // LOGO SETTINGS
+    // LOGO AREA (where your logo will be placed)
     logo: {
-        maxWidth: 400,        // Maximum logo width in pixels
-        maxHeight: 200,       // Maximum logo height in pixels
-        holdTime: 1.5         // How long logo stays on screen (seconds)
-    },
-
-    // ANIMATION TIMING
-    timing: {
-        raysStart: 0,
-        raysEnd: 1.5,
-        stripesStart: 0.3,
-        stripesEnd: 2.0,
-        starsStart: 0.8,
-        starsEnd: 2.5,
-        logoFadeIn: 1.8,
-        logoFullOn: 2.2
+        width: 500,
+        height: 280
     }
 };
 
 // ============================================================================
-// HELPER FUNCTIONS
+// UTILITY FUNCTIONS
 // ============================================================================
 
-function createComp() {
+function addKeyframes(prop, keyframes) {
+    for (var i = 0; i < keyframes.length; i++) {
+        prop.setValueAtTime(keyframes[i][0], keyframes[i][1]);
+    }
+    // Apply ease
+    for (var j = 1; j <= prop.numKeys; j++) {
+        var ease = new KeyframeEase(0.33, 90);
+        prop.setTemporalEaseAtKey(j, [ease], [ease]);
+    }
+}
+
+// ============================================================================
+// MAIN BUILD
+// ============================================================================
+
+function buildBumper() {
+    app.beginUndoGroup("Create Political Bumper");
+
+    var c = CONFIG.colors;
     var comp = app.project.items.addComp(
         CONFIG.comp.name,
         CONFIG.comp.width,
         CONFIG.comp.height,
-        CONFIG.comp.pixelAspect,
+        1,
         CONFIG.comp.duration,
         CONFIG.comp.frameRate
     );
-    return comp;
-}
 
-function addSolidLayer(comp, name, color, width, height) {
-    width = width || comp.width;
-    height = height || comp.height;
-    return comp.layers.addSolid(color, name, width, height, 1);
-}
+    var cx = comp.width / 2;
+    var cy = comp.height / 2;
 
-function setAnchorPoint(layer, x, y) {
-    layer.property("Transform").property("Anchor Point").setValue([x, y]);
-}
+    // ========================================================================
+    // LAYER 1: BACKGROUND - Solid navy blue
+    // ========================================================================
+    var bg = comp.layers.addSolid(c.blue, "BG_Navy", comp.width, comp.height, 1);
+    bg.moveToEnd();
 
-function setPosition(layer, x, y) {
-    layer.property("Transform").property("Position").setValue([x, y]);
-}
+    // ========================================================================
+    // LAYER 2: SUNBURST RAYS - WPA style, behind everything
+    // Rays radiate from center, subtle rotation
+    // ========================================================================
+    var rays = comp.layers.addShape();
+    rays.name = "Sunburst_Rays";
+    var raysContent = rays.property("Contents");
 
-function setScale(layer, scaleX, scaleY) {
-    scaleY = scaleY || scaleX;
-    layer.property("Transform").property("Scale").setValue([scaleX, scaleY]);
-}
-
-function setRotation(layer, degrees) {
-    layer.property("Transform").property("Rotation").setValue(degrees);
-}
-
-function setOpacity(layer, opacity) {
-    layer.property("Transform").property("Opacity").setValue(opacity);
-}
-
-function addKeyframe(property, time, value) {
-    property.setValueAtTime(time, value);
-}
-
-function applyEaseToKeyframes(property) {
-    var numKeys = property.numKeys;
-    for (var i = 1; i <= numKeys; i++) {
-        var easeIn = new KeyframeEase(0.5, 75);
-        var easeOut = new KeyframeEase(0.5, 75);
-        property.setTemporalEaseAtKey(i, [easeIn], [easeOut]);
-    }
-}
-
-function createShapeLayer(comp, name) {
-    var shapeLayer = comp.layers.addShape();
-    shapeLayer.name = name;
-    return shapeLayer;
-}
-
-// ============================================================================
-// WPA-STYLE SUNBURST RAYS
-// ============================================================================
-
-function createSunburstRays(comp) {
-    var colors = CONFIG.colors.primary;
-    var numRays = 24;
-    var rayGroup = createShapeLayer(comp, "WPA_Sunburst_Rays");
-
-    var contents = rayGroup.property("Contents");
+    var numRays = 16;
+    var rayLength = 1400;
 
     for (var i = 0; i < numRays; i++) {
         var angle = (360 / numRays) * i;
-        var rayColor = (i % 2 === 0) ? colors.red : colors.blue;
+        // Alternate between slightly lighter and darker blue
+        var rayColor = (i % 2 === 0) ? [0.18, 0.22, 0.38] : [0.10, 0.14, 0.26];
 
-        // Add a group for each ray
-        var group = contents.addProperty("ADBE Vector Group");
-        group.name = "Ray_" + (i + 1);
+        var rayGrp = raysContent.addProperty("ADBE Vector Group");
+        rayGrp.name = "Ray_" + i;
 
-        // Create triangle path for ray
-        var pathGroup = group.property("Contents").addProperty("ADBE Vector Shape - Group");
-        var path = pathGroup.property("Path");
-
-        // Triangle vertices (elongated ray shape)
-        var rayLength = 1500;
-        var rayWidth = Math.tan((360 / numRays / 2) * Math.PI / 180) * rayLength;
-
+        var rayPath = rayGrp.property("Contents").addProperty("ADBE Vector Shape - Group");
         var shape = new Shape();
-        shape.vertices = [
-            [0, 0],
-            [-rayWidth, -rayLength],
-            [rayWidth, -rayLength]
-        ];
+        var halfAngle = (360 / numRays / 2) * (Math.PI / 180);
+        var rayWidth = Math.tan(halfAngle) * rayLength;
+
+        shape.vertices = [[0, 0], [-rayWidth, -rayLength], [rayWidth, -rayLength]];
         shape.closed = true;
-        path.setValue(shape);
+        rayPath.property("Path").setValue(shape);
 
-        // Add fill
-        var fill = group.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-        fill.property("Color").setValue(rayColor);
-        fill.property("Opacity").setValue(85);
+        var rayFill = rayGrp.property("Contents").addProperty("ADBE Vector Graphic - Fill");
+        rayFill.property("Color").setValue(rayColor);
 
-        // Transform the ray group
-        var transform = group.property("Transform");
-        transform.property("Rotation").setValue(angle);
+        rayGrp.property("Transform").property("Rotation").setValue(angle);
     }
 
-    // Position sunburst at center-bottom (WPA style - rising sun)
-    setPosition(rayGroup, comp.width / 2, comp.height + 200);
+    rays.property("Transform").property("Position").setValue([cx, cy]);
+    // Slow rotation throughout
+    var raysRot = rays.property("Transform").property("Rotation");
+    addKeyframes(raysRot, [[0, 0], [CONFIG.comp.duration, 8]]);
 
-    // Animate scale
-    var scaleProp = rayGroup.property("Transform").property("Scale");
-    addKeyframe(scaleProp, CONFIG.timing.raysStart, [0, 0]);
-    addKeyframe(scaleProp, CONFIG.timing.raysEnd, [100, 100]);
-    applyEaseToKeyframes(scaleProp);
+    rays.moveToEnd();
+    rays.moveAfter(bg);
 
-    // Animate rotation for dynamic effect
-    var rotProp = rayGroup.property("Transform").property("Rotation");
-    addKeyframe(rotProp, CONFIG.timing.raysStart, -15);
-    addKeyframe(rotProp, CONFIG.comp.duration, 15);
+    // ========================================================================
+    // LAYER 3: LEFT WIPE PANEL - Red panel wipes in from left, then exits left
+    // ========================================================================
+    var leftPanel = comp.layers.addSolid(c.red, "Panel_Left", comp.width / 2 + 100, comp.height + 200, 1);
+    leftPanel.property("Transform").property("Anchor Point").setValue([comp.width / 2 + 100, (comp.height + 200) / 2]);
+    leftPanel.property("Transform").property("Rotation").setValue(-3);
 
-    return rayGroup;
-}
+    var leftPos = leftPanel.property("Transform").property("Position");
+    addKeyframes(leftPos, [
+        [0.0, [-400, cy]],           // Start off-screen left
+        [0.4, [cx - 50, cy]],        // Wipe to center
+        [1.2, [cx - 50, cy]],        // Hold
+        [1.7, [-600, cy]]            // Exit left
+    ]);
 
-// ============================================================================
-// GEOMETRIC STRIPES (WPA STYLE)
-// ============================================================================
+    // ========================================================================
+    // LAYER 4: RIGHT WIPE PANEL - Red panel wipes in from right, then exits right
+    // ========================================================================
+    var rightPanel = comp.layers.addSolid(c.red, "Panel_Right", comp.width / 2 + 100, comp.height + 200, 1);
+    rightPanel.property("Transform").property("Anchor Point").setValue([0, (comp.height + 200) / 2]);
+    rightPanel.property("Transform").property("Rotation").setValue(3);
 
-function createGeometricStripes(comp) {
-    var colors = CONFIG.colors.primary;
-    var stripeGroup = createShapeLayer(comp, "WPA_Stripes");
-    var contents = stripeGroup.property("Contents");
+    var rightPos = rightPanel.property("Transform").property("Position");
+    addKeyframes(rightPos, [
+        [0.0, [comp.width + 400, cy]],   // Start off-screen right
+        [0.4, [cx + 50, cy]],            // Wipe to center
+        [1.2, [cx + 50, cy]],            // Hold
+        [1.7, [comp.width + 600, cy]]    // Exit right
+    ]);
 
-    var stripeHeight = 80;
-    var numStripes = 7;
-    var stripeColors = [
-        colors.red, colors.white, colors.blue,
-        colors.white, colors.red, colors.white, colors.blue
-    ];
+    // ========================================================================
+    // LAYER 5: CENTER WHITE FLASH - Brief flash as panels meet
+    // ========================================================================
+    var flash = comp.layers.addSolid(c.white, "Center_Flash", comp.width, comp.height, 1);
+    var flashOpacity = flash.property("Transform").property("Opacity");
+    addKeyframes(flashOpacity, [
+        [0.35, 0],
+        [0.42, 60],
+        [0.55, 0]
+    ]);
 
-    for (var i = 0; i < numStripes; i++) {
-        var group = contents.addProperty("ADBE Vector Group");
-        group.name = "Stripe_" + (i + 1);
+    // ========================================================================
+    // LAYER 6: LOGO ZONE MASK/HOLDER - White area where logo goes
+    // This fades in as panels exit, providing clean backdrop for logo
+    // ========================================================================
+    var logoZone = comp.layers.addShape();
+    logoZone.name = "LOGO_ZONE";
+    var lzContent = logoZone.property("Contents");
 
-        // Create rectangle for stripe
-        var rect = group.property("Contents").addProperty("ADBE Vector Shape - Rect");
-        rect.property("Size").setValue([comp.width * 2, stripeHeight]);
+    var lzGrp = lzContent.addProperty("ADBE Vector Group");
+    var lzRect = lzGrp.property("Contents").addProperty("ADBE Vector Shape - Rect");
+    lzRect.property("Size").setValue([CONFIG.logo.width + 80, CONFIG.logo.height + 60]);
+    lzRect.property("Roundness").setValue(0);
 
-        // Add fill
-        var fill = group.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-        fill.property("Color").setValue(stripeColors[i]);
+    var lzFill = lzGrp.property("Contents").addProperty("ADBE Vector Graphic - Fill");
+    lzFill.property("Color").setValue(c.white);
 
-        // Position each stripe
-        var yPos = comp.height - (stripeHeight * (i + 0.5)) - 100;
-        group.property("Transform").property("Position").setValue([comp.width / 2, yPos]);
+    logoZone.property("Transform").property("Position").setValue([cx, cy]);
 
-        // Animate each stripe sliding in from alternating sides
-        var posProp = group.property("Transform").property("Position");
-        var startX = (i % 2 === 0) ? -comp.width : comp.width * 2;
-        var delay = i * 0.08;
+    var lzScale = logoZone.property("Transform").property("Scale");
+    var lzOpacity = logoZone.property("Transform").property("Opacity");
+    addKeyframes(lzScale, [
+        [1.3, [0, 100]],
+        [1.65, [100, 100]]
+    ]);
+    addKeyframes(lzOpacity, [
+        [1.3, 0],
+        [1.5, 100]
+    ]);
 
-        addKeyframe(posProp, CONFIG.timing.stripesStart + delay, [startX, yPos]);
-        addKeyframe(posProp, CONFIG.timing.stripesEnd + delay, [comp.width / 2, yPos]);
-        applyEaseToKeyframes(posProp);
-    }
-
-    // Slight rotation for dynamic diagonal look
-    setRotation(stripeGroup, -5);
-
-    return stripeGroup;
-}
-
-// ============================================================================
-// STAR ACCENTS
-// ============================================================================
-
-function createStarShape(group, size) {
-    var pathGroup = group.property("Contents").addProperty("ADBE Vector Shape - Group");
-    var path = pathGroup.property("Path");
-
-    var shape = new Shape();
-    var points = 5;
-    var outerRadius = size;
-    var innerRadius = size * 0.4;
-    var vertices = [];
-
-    for (var i = 0; i < points * 2; i++) {
-        var radius = (i % 2 === 0) ? outerRadius : innerRadius;
-        var angle = (Math.PI / 2) + (Math.PI * i / points);
-        vertices.push([
-            Math.cos(angle) * radius,
-            -Math.sin(angle) * radius
-        ]);
-    }
-
-    shape.vertices = vertices;
-    shape.closed = true;
-    path.setValue(shape);
-}
-
-function createStarAccents(comp) {
-    var colors = CONFIG.colors.primary;
-    var starLayer = createShapeLayer(comp, "Star_Accents");
-    var contents = starLayer.property("Contents");
-
-    // Star positions and sizes (positioned for political bumper aesthetic)
-    var stars = [
-        { x: comp.width * 0.15, y: comp.height * 0.25, size: 60, color: colors.white },
-        { x: comp.width * 0.85, y: comp.height * 0.25, size: 60, color: colors.white },
-        { x: comp.width * 0.1, y: comp.height * 0.5, size: 40, color: colors.white },
-        { x: comp.width * 0.9, y: comp.height * 0.5, size: 40, color: colors.white },
-        { x: comp.width * 0.2, y: comp.height * 0.15, size: 30, color: colors.red },
-        { x: comp.width * 0.8, y: comp.height * 0.15, size: 30, color: colors.red },
-        { x: comp.width * 0.5, y: comp.height * 0.12, size: 80, color: colors.white }
-    ];
-
-    for (var i = 0; i < stars.length; i++) {
-        var star = stars[i];
-        var group = contents.addProperty("ADBE Vector Group");
-        group.name = "Star_" + (i + 1);
-
-        createStarShape(group, star.size);
-
-        // Add fill
-        var fill = group.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-        fill.property("Color").setValue(star.color);
-
-        // Add stroke for definition
-        var stroke = group.property("Contents").addProperty("ADBE Vector Graphic - Stroke");
-        stroke.property("Color").setValue(colors.blue);
-        stroke.property("Stroke Width").setValue(2);
-
-        // Position
-        group.property("Transform").property("Position").setValue([star.x, star.y]);
-
-        // Animate scale with staggered timing
-        var scaleProp = group.property("Transform").property("Scale");
-        var delay = i * 0.1;
-        addKeyframe(scaleProp, CONFIG.timing.starsStart + delay, [0, 0]);
-        addKeyframe(scaleProp, CONFIG.timing.starsEnd + delay, [100, 100]);
-        applyEaseToKeyframes(scaleProp);
-
-        // Add subtle rotation animation
-        var rotProp = group.property("Transform").property("Rotation");
-        addKeyframe(rotProp, CONFIG.timing.starsStart + delay, -180);
-        addKeyframe(rotProp, CONFIG.timing.starsEnd + delay, 0);
-        applyEaseToKeyframes(rotProp);
-    }
-
-    return starLayer;
-}
-
-// ============================================================================
-// BACKGROUND
-// ============================================================================
-
-function createBackground(comp) {
-    var colors = CONFIG.colors.primary;
-
-    // Main background
-    var bg = addSolidLayer(comp, "Background", colors.blue);
-    bg.moveToEnd();
-
-    // Vignette overlay for depth
-    var vignette = addSolidLayer(comp, "Vignette", [0, 0, 0]);
-    vignette.moveToEnd();
-
-    // Add radial gradient effect for vignette
-    var radialWipe = vignette.property("Effects").addProperty("ADBE Radial Wipe");
-    radialWipe.property("Transition Completion").setValue(0);
-
-    // Use a simple approach - just darken edges with opacity
-    setOpacity(vignette, 0);
-
-    return bg;
-}
-
-// ============================================================================
-// LOGO PLACEHOLDER
-// ============================================================================
-
-function createLogoPlaceholder(comp) {
-    var colors = CONFIG.colors.primary;
-    var logoLayer = createShapeLayer(comp, "LOGO_PLACEHOLDER");
-    var contents = logoLayer.property("Contents");
-
-    // Create a placeholder rectangle where logo will go
-    var group = contents.addProperty("ADBE Vector Group");
-    group.name = "Logo_Box";
-
-    var rect = group.property("Contents").addProperty("ADBE Vector Shape - Rect");
-    rect.property("Size").setValue([CONFIG.logo.maxWidth, CONFIG.logo.maxHeight]);
-    rect.property("Roundness").setValue(10);
-
-    // Subtle fill
-    var fill = group.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-    fill.property("Color").setValue(colors.white);
-    fill.property("Opacity").setValue(95);
-
-    // Border stroke
-    var stroke = group.property("Contents").addProperty("ADBE Vector Graphic - Stroke");
-    stroke.property("Color").setValue(colors.blue);
-    stroke.property("Stroke Width").setValue(4);
-
-    // Add "LOGO" text indicator
-    var textLayer = comp.layers.addText("YOUR LOGO");
-    textLayer.name = "Logo_Text_Indicator";
-
-    var textProp = textLayer.property("Source Text");
+    // ========================================================================
+    // LAYER 7: LOGO PLACEHOLDER TEXT - Replace this with actual logo
+    // ========================================================================
+    var logoText = comp.layers.addText("LOGO");
+    logoText.name = "REPLACE_WITH_LOGO";
+    var textProp = logoText.property("Source Text");
     var textDoc = textProp.value;
     textDoc.font = "Arial-BoldMT";
-    textDoc.fontSize = 36;
-    textDoc.fillColor = colors.blue;
+    textDoc.fontSize = 72;
+    textDoc.fillColor = c.blue;
     textDoc.justification = ParagraphJustification.CENTER_JUSTIFY;
     textProp.setValue(textDoc);
 
-    // Center both elements
-    setPosition(logoLayer, comp.width / 2, comp.height / 2 - 50);
-    setPosition(textLayer, comp.width / 2, comp.height / 2 - 40);
+    logoText.property("Transform").property("Position").setValue([cx, cy + 20]);
 
-    // Animate logo fade in and scale
-    var scaleProp = logoLayer.property("Transform").property("Scale");
-    addKeyframe(scaleProp, CONFIG.timing.logoFadeIn, [80, 80]);
-    addKeyframe(scaleProp, CONFIG.timing.logoFullOn, [100, 100]);
-    applyEaseToKeyframes(scaleProp);
+    var logoScale = logoText.property("Transform").property("Scale");
+    var logoOpacity = logoText.property("Transform").property("Opacity");
+    addKeyframes(logoScale, [
+        [1.4, [90, 90]],
+        [1.7, [100, 100]]
+    ]);
+    addKeyframes(logoOpacity, [
+        [1.4, 0],
+        [1.65, 100]
+    ]);
 
-    var opacityProp = logoLayer.property("Transform").property("Opacity");
-    addKeyframe(opacityProp, CONFIG.timing.logoFadeIn, 0);
-    addKeyframe(opacityProp, CONFIG.timing.logoFullOn, 100);
-    applyEaseToKeyframes(opacityProp);
+    // ========================================================================
+    // LAYER 8: TOP ACCENT BAR - Thin white line accent
+    // ========================================================================
+    var topBar = comp.layers.addSolid(c.white, "Accent_Top", comp.width + 200, 6, 1);
+    topBar.property("Transform").property("Position").setValue([cx, cy - CONFIG.logo.height / 2 - 50]);
+    topBar.property("Transform").property("Rotation").setValue(-1);
 
-    // Same for text indicator
-    var textScaleProp = textLayer.property("Transform").property("Scale");
-    addKeyframe(textScaleProp, CONFIG.timing.logoFadeIn, [80, 80]);
-    addKeyframe(textScaleProp, CONFIG.timing.logoFullOn, [100, 100]);
-    applyEaseToKeyframes(textScaleProp);
+    var topBarScale = topBar.property("Transform").property("Scale");
+    addKeyframes(topBarScale, [
+        [1.5, [0, 100]],
+        [1.8, [100, 100]]
+    ]);
 
-    var textOpacityProp = textLayer.property("Transform").property("Opacity");
-    addKeyframe(textOpacityProp, CONFIG.timing.logoFadeIn, 0);
-    addKeyframe(textOpacityProp, CONFIG.timing.logoFullOn, 100);
-    applyEaseToKeyframes(textOpacityProp);
+    // ========================================================================
+    // LAYER 9: BOTTOM ACCENT BAR - Thin white line accent
+    // ========================================================================
+    var botBar = comp.layers.addSolid(c.white, "Accent_Bottom", comp.width + 200, 6, 1);
+    botBar.property("Transform").property("Position").setValue([cx, cy + CONFIG.logo.height / 2 + 50]);
+    botBar.property("Transform").property("Rotation").setValue(1);
 
-    return logoLayer;
-}
+    var botBarScale = botBar.property("Transform").property("Scale");
+    addKeyframes(botBarScale, [
+        [1.5, [0, 100]],
+        [1.8, [100, 100]]
+    ]);
 
-// ============================================================================
-// TITLE BAR / LOWER THIRD ELEMENT
-// ============================================================================
-
-function createTitleBar(comp) {
-    var colors = CONFIG.colors.primary;
-    var barLayer = createShapeLayer(comp, "Title_Bar");
-    var contents = barLayer.property("Contents");
-
-    // Main bar
-    var mainBar = contents.addProperty("ADBE Vector Group");
-    mainBar.name = "Main_Bar";
-
-    var rect = mainBar.property("Contents").addProperty("ADBE Vector Shape - Rect");
-    rect.property("Size").setValue([comp.width + 100, 120]);
-
-    var fill = mainBar.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-    fill.property("Color").setValue(colors.red);
-
-    // Accent line
-    var accentBar = contents.addProperty("ADBE Vector Group");
-    accentBar.name = "Accent_Line";
-
-    var accentRect = accentBar.property("Contents").addProperty("ADBE Vector Shape - Rect");
-    accentRect.property("Size").setValue([comp.width + 100, 8]);
-
-    var accentFill = accentBar.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-    accentFill.property("Color").setValue(colors.white);
-
-    accentBar.property("Transform").property("Position").setValue([0, -60]);
-
-    // Position bar at bottom
-    setPosition(barLayer, comp.width / 2, comp.height + 80);
-    setRotation(barLayer, -3);
-
-    // Animate bar sliding up
-    var posProp = barLayer.property("Transform").property("Position");
-    addKeyframe(posProp, 0.5, [comp.width / 2, comp.height + 150]);
-    addKeyframe(posProp, 1.2, [comp.width / 2, comp.height - 60]);
-    applyEaseToKeyframes(posProp);
-
-    return barLayer;
-}
-
-// ============================================================================
-// FRAME / BORDER ELEMENT
-// ============================================================================
-
-function createFrame(comp) {
-    var colors = CONFIG.colors.primary;
-    var frameLayer = createShapeLayer(comp, "Frame_Border");
-    var contents = frameLayer.property("Contents");
-
-    var borderWidth = 20;
-
-    // Create frame as 4 rectangles
-    var sides = [
-        { name: "Top", w: comp.width, h: borderWidth, x: comp.width/2, y: borderWidth/2 },
-        { name: "Bottom", w: comp.width, h: borderWidth, x: comp.width/2, y: comp.height - borderWidth/2 },
-        { name: "Left", w: borderWidth, h: comp.height, x: borderWidth/2, y: comp.height/2 },
-        { name: "Right", w: borderWidth, h: comp.height, x: comp.width - borderWidth/2, y: comp.height/2 }
+    // ========================================================================
+    // LAYER 10: CORNER STARS - Small star accents in corners (WPA touch)
+    // ========================================================================
+    var starPositions = [
+        [120, 100], [comp.width - 120, 100],
+        [120, comp.height - 100], [comp.width - 120, comp.height - 100]
     ];
 
-    for (var i = 0; i < sides.length; i++) {
-        var side = sides[i];
-        var group = contents.addProperty("ADBE Vector Group");
-        group.name = "Border_" + side.name;
+    for (var s = 0; s < starPositions.length; s++) {
+        var starLayer = comp.layers.addShape();
+        starLayer.name = "Star_" + (s + 1);
+        var starContent = starLayer.property("Contents");
+        var starGrp = starContent.addProperty("ADBE Vector Group");
 
-        var rect = group.property("Contents").addProperty("ADBE Vector Shape - Rect");
-        rect.property("Size").setValue([side.w, side.h]);
+        // 5-point star
+        var starPath = starGrp.property("Contents").addProperty("ADBE Vector Shape - Group");
+        var starShape = new Shape();
+        var outerR = 25;
+        var innerR = 10;
+        var pts = [];
+        for (var p = 0; p < 10; p++) {
+            var r = (p % 2 === 0) ? outerR : innerR;
+            var ang = (Math.PI / 2) + (Math.PI * p / 5);
+            pts.push([Math.cos(ang) * r, -Math.sin(ang) * r]);
+        }
+        starShape.vertices = pts;
+        starShape.closed = true;
+        starPath.property("Path").setValue(starShape);
 
-        var fill = group.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-        fill.property("Color").setValue(colors.blue);
+        var starFill = starGrp.property("Contents").addProperty("ADBE Vector Graphic - Fill");
+        starFill.property("Color").setValue(c.white);
 
-        group.property("Transform").property("Position").setValue([side.x, side.y]);
+        starLayer.property("Transform").property("Position").setValue(starPositions[s]);
+
+        var starScale = starLayer.property("Transform").property("Scale");
+        var starOpacity = starLayer.property("Transform").property("Opacity");
+        var delay = 1.7 + (s * 0.08);
+        addKeyframes(starScale, [[delay, [0, 0]], [delay + 0.2, [100, 100]]]);
+        addKeyframes(starOpacity, [[delay, 0], [delay + 0.15, 100]]);
     }
 
-    // Animate frame appearing
-    var opacityProp = frameLayer.property("Transform").property("Opacity");
-    addKeyframe(opacityProp, 0, 0);
-    addKeyframe(opacityProp, 0.8, 100);
-    applyEaseToKeyframes(opacityProp);
+    // Open composition
+    comp.openInViewer();
 
-    return frameLayer;
-}
-
-// ============================================================================
-// MAIN EXECUTION
-// ============================================================================
-
-function main() {
-    // Start undo group
-    app.beginUndoGroup("Create Political Bumper");
-
-    try {
-        // Create main composition
-        var comp = createComp();
-
-        // Build layers (order matters - first created = top layer)
-        createFrame(comp);
-        createLogoPlaceholder(comp);
-        createStarAccents(comp);
-        createTitleBar(comp);
-        createGeometricStripes(comp);
-        createSunburstRays(comp);
-        createBackground(comp);
-
-        // Open the composition
-        comp.openInViewer();
-
-        alert("Political Bumper Created Successfully!\n\n" +
-              "TO CUSTOMIZE:\n" +
-              "1. Colors: Edit the CONFIG.colors section at the top of the script\n" +
-              "2. Logo: Replace the 'LOGO_PLACEHOLDER' layer with your logo\n" +
-              "3. Timing: Adjust CONFIG.timing values\n\n" +
-              "TIP: Select 'LOGO_PLACEHOLDER' layer and use Edit > Replace With to add your logo");
-
-    } catch (error) {
-        alert("Error creating bumper: " + error.toString());
-    }
-
-    // End undo group
     app.endUndoGroup();
+
+    alert("Political Bumper Created!\n\n" +
+          "TO ADD YOUR LOGO:\n" +
+          "1. Import your logo file\n" +
+          "2. Drag it into the comp above 'REPLACE_WITH_LOGO'\n" +
+          "3. Position at center, copy the keyframes from REPLACE_WITH_LOGO\n" +
+          "4. Delete the REPLACE_WITH_LOGO text layer\n\n" +
+          "COLORS: Edit CONFIG.colors at top of script");
 }
 
-// Run the script
-main();
+buildBumper();
