@@ -75,6 +75,79 @@ This game captures the excitement of racing these incredible machines!
 - No installation or build process needed
 - Internet connection (for Three.js CDN)
 
+---
+
+## Political Bumper End Graphic (After Effects)
+
+Adobe After Effects ExtendScript for creating a modern political motion graphic with WPA-style Americana influences. Perfect for video end transitions featuring a logo reveal.
+
+### Files
+
+| File | Description |
+|------|-------------|
+| `political-bumper.jsx` | Main After Effects script |
+| `political-bumper-colors.jsx` | Color preset reference |
+
+### Features
+
+- **WPA-Style Sunburst Rays**: Classic rising sun motif with animated rays
+- **Geometric Stripes**: Animated diagonal stripes with staggered reveal
+- **Star Accents**: Patriotic star elements with rotation animations
+- **Logo Placeholder**: Easy-to-replace placeholder for your logo
+- **Title Bar**: Modern lower-third style element
+- **Frame Border**: Clean framing element
+
+### How to Use
+
+1. Open Adobe After Effects
+2. Go to **File > Scripts > Run Script File**
+3. Select `political-bumper.jsx`
+4. The composition will be created and opened automatically
+
+### Customizing Colors
+
+Colors are easily configured at the top of `political-bumper.jsx`:
+
+```javascript
+colors: {
+    primary: {
+        red:   [0.698, 0.132, 0.203],    // #B22234
+        white: [1.000, 1.000, 1.000],    // #FFFFFF
+        blue:  [0.234, 0.234, 0.430]     // #3C3C6E
+    }
+}
+```
+
+See `political-bumper-colors.jsx` for preset color schemes including:
+- Classic American Flag
+- Vintage WPA Poster Style
+- Modern Campaign styles
+- Bold News Network
+- Retro Americana
+
+### Adding Your Logo
+
+1. Import your logo into the After Effects project
+2. Select the `LOGO_PLACEHOLDER` layer
+3. Use **Edit > Replace With** to swap in your logo
+4. Delete the `Logo_Text_Indicator` layer
+
+### Customizing Timing
+
+Adjust the `CONFIG.timing` section to modify animation timing:
+
+```javascript
+timing: {
+    raysStart: 0,       // Sunburst animation start
+    raysEnd: 1.5,       // Sunburst animation end
+    stripesStart: 0.3,  // Stripes animation start
+    logoFadeIn: 1.8,    // Logo fade begins
+    logoFullOn: 2.2     // Logo fully visible
+}
+```
+
+---
+
 ## License
 
 MIT License - Feel free to modify and share!
